@@ -1,15 +1,13 @@
 "use client";
 
 import {
-  CalendarDays,
+  BadgeCheck,
   Construction,
   Home,
   MapPinned,
   MessageCircle,
-  PawPrint,
   Search,
   TreePine,
-  Users,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -129,6 +127,7 @@ function NeighborPanel({
   onNotify: (message: string) => void;
 }) {
   const isVacant = lot.status === "vacant";
+  const isRegistered = Boolean(lot.household?.registered);
 
   return (
     <aside className="neighbor-panel" aria-label={`Información del lote ${lot.number}`}>
@@ -161,8 +160,8 @@ function NeighborPanel({
           </p>
         </div>
       ) : (
-        <>
-          <div className="mt-6 flex items-center gap-3 rounded-2xl bg-[#F5F7F2] p-3.5">
+        <div className="mt-6 rounded-2xl bg-[#F5F7F2] p-4">
+          <div className="flex items-center gap-3">
             <div
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
               style={{ backgroundColor: lot.household?.accent }}
@@ -171,28 +170,18 @@ function NeighborPanel({
             </div>
             <div>
               <p className="text-sm font-semibold text-[#263B34]">{lot.household?.contact}</p>
-              <p className="mt-0.5 text-xs text-[#7A837E]">Perfil visible para residentes</p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-[#7A837E]">
+                {isRegistered && <BadgeCheck size={13} className="text-[#3E725F]" />}
+                {isRegistered ? "Información vecinal registrada" : "Registro pendiente"}
+              </p>
             </div>
           </div>
-
-          <dl className="mt-5 grid grid-cols-2 gap-3">
-            <div className="info-tile">
-              <Users size={17} />
-              <dt>Residentes</dt>
-              <dd>{lot.household?.members} personas</dd>
-            </div>
-            <div className="info-tile">
-              <CalendarDays size={17} />
-              <dt>Desde</dt>
-              <dd>{lot.household?.since}</dd>
-            </div>
-            <div className="info-tile col-span-2">
-              <PawPrint size={17} />
-              <dt>Mascotas</dt>
-              <dd>{lot.household?.pet ?? "Sin mascotas registradas"}</dd>
-            </div>
-          </dl>
-        </>
+          {!isRegistered && (
+            <p className="mt-3 border-t border-[#E1E6DF] pt-3 text-xs leading-5 text-[#7A837E]">
+              Esta casa todavía no tiene información vecinal registrada.
+            </p>
+          )}
+        </div>
       )}
 
       <button
@@ -201,16 +190,22 @@ function NeighborPanel({
           onNotify(
             isVacant
               ? `Solicitud enviada a administración sobre el lote ${lot.number}.`
-              : `Se abrió un mensaje para ${lot.household?.name}.`,
+              : isRegistered
+                ? `Se abrió un mensaje para ${lot.household?.name}.`
+                : `Se solicitó actualizar la información de la casa ${lot.number}.`,
           )
         }
       >
         <MessageCircle size={17} />
-        {isVacant ? "Consultar a administración" : "Enviar mensaje"}
+        {isVacant
+          ? "Consultar a administración"
+          : isRegistered
+            ? "Enviar mensaje"
+            : "Solicitar actualización"}
       </button>
 
       <p className="mt-4 text-center text-[11px] leading-4 text-[#919A94]">
-        Datos de demostración para visualizar el directorio.
+        La información vecinal se publica únicamente con autorización.
       </p>
     </aside>
   );
@@ -242,7 +237,7 @@ export function NeighborhoodMap({ onNotify }: NeighborhoodMapProps) {
   const vacantCount = lots.length - occupiedCount;
 
   return (
-    <section id="mapa" className="map-card scroll-mt-24">
+    <section id="mapa" className="map-card scroll-mt-28">
       <div className="flex flex-col gap-4 border-b border-[#E5E8E1] px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="section-kicker">Vista del fraccionamiento</p>

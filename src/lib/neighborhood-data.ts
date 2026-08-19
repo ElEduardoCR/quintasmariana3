@@ -3,11 +3,9 @@ export type LotStatus = "occupied" | "vacant";
 export type Household = {
   name: string;
   initials: string;
-  members: number;
-  since: string;
-  pet?: string;
   contact: string;
   accent: string;
+  registered: boolean;
 };
 
 export type Lot = {
@@ -31,73 +29,35 @@ export type Notice = {
   accent: "coral" | "green" | "blue" | "amber";
 };
 
-const familyNames = [
-  "Familia Aguirre",
-  "Familia Beltrán",
-  "Familia Chávez",
-  "Familia Domínguez",
-  "Familia Esparza",
-  "Familia Fierro",
-  "Familia Galindo",
-  "Familia Herrera",
-  "Familia Ibarra",
-  "Familia Jiménez",
-  "Familia Lara",
-  "Familia Mendoza",
-  "Familia Navarro",
-  "Familia Ochoa",
-  "Familia Pérez",
-  "Familia Quezada",
-  "Familia Ríos",
-  "Familia Salas",
-  "Familia Torres",
-  "Familia Urías",
-  "Familia Valdez",
-  "Familia Wong",
-  "Familia Yáñez",
-  "Familia Zamora",
-  "Familia Acosta",
-  "Familia Bustillos",
-  "Familia Carrasco",
-  "Familia Delgado",
-  "Familia Enríquez",
-  "Familia Flores",
-  "Familia Gómez",
-  "Familia Holguín",
-  "Familia Lozoya",
-  "Familia Márquez",
-  "Familia Nájera",
-];
+type RegisteredResident = Pick<Household, "name" | "initials" | "accent">;
 
-const accents = ["#376B5B", "#CE715B", "#55737E", "#A37746", "#6D6B8C"];
+// Los vecinos se dan de alta aquí, usando el número de casa como llave.
+export const residentDirectory: Record<string, RegisteredResident> = {
+  "607": {
+    name: "Familia Castañeda Martínez",
+    initials: "CM",
+    accent: "#376B5B",
+  },
+};
 
 type LotSeed = Omit<Lot, "household">;
 
-function makeHousehold(lot: LotSeed, occupiedIndex: number): Household {
-  const name = familyNames[occupiedIndex];
-  const initials = name.replace("Familia ", "").slice(0, 2).toUpperCase();
-  const petOptions = ["Luna · perrita", "Milo · gato", undefined, "Nala · perrita", undefined];
+function makeHousehold(lot: LotSeed): Household {
+  const resident = residentDirectory[lot.number];
 
   return {
-    name,
-    initials,
-    members: 2 + ((lot.id + occupiedIndex) % 4),
-    since: String(2018 + (occupiedIndex % 8)),
-    pet: petOptions[occupiedIndex % petOptions.length],
-    contact: `Contacto vecinal · Casa ${lot.number}`,
-    accent: accents[occupiedIndex % accents.length],
+    name: resident?.name ?? "Vecino por registrar",
+    initials: resident?.initials ?? lot.number,
+    contact: `Casa ${lot.number}`,
+    accent: resident?.accent ?? "#789087",
+    registered: Boolean(resident),
   };
 }
 
 function withHouseholds(lots: LotSeed[]): Lot[] {
-  let occupiedIndex = 0;
-
   return lots.map((lot) => {
     if (lot.status === "vacant") return lot;
-
-    const household = makeHousehold(lot, occupiedIndex);
-    occupiedIndex += 1;
-    return { ...lot, household };
+    return { ...lot, household: makeHousehold(lot) };
   });
 }
 
@@ -209,50 +169,5 @@ export const initialNotices: Notice[] = [
     body: "Habrá lotería, aguas frescas y actividades para niñas y niños.",
     date: "Dom · 4:20 p. m.",
     accent: "amber",
-  },
-];
-
-export const activityItems = [
-  {
-    id: 1,
-    title: "Acceso registrado",
-    detail: "Proveedor autorizado · Casa 618",
-    time: "Hace 8 min",
-    type: "access" as const,
-  },
-  {
-    id: 2,
-    title: "Cuota recibida",
-    detail: "Casa 624 · Agosto",
-    time: "Hace 42 min",
-    type: "payment" as const,
-  },
-  {
-    id: 3,
-    title: "Nuevo aviso publicado",
-    detail: "Mantenimiento de cisterna",
-    time: "Hoy · 8:30 a. m.",
-    type: "notice" as const,
-  },
-  {
-    id: 4,
-    title: "Visita finalizada",
-    detail: "Casa 609 · Salida confirmada",
-    time: "Ayer · 7:02 p. m.",
-    type: "access" as const,
-  },
-  {
-    id: 5,
-    title: "Reporte atendido",
-    detail: "Luminaria norte reparada",
-    time: "Ayer · 4:18 p. m.",
-    type: "service" as const,
-  },
-  {
-    id: 6,
-    title: "Reserva confirmada",
-    detail: "Parque central · Sábado 5:00 p. m.",
-    time: "Lun · 12:30 p. m.",
-    type: "event" as const,
   },
 ];

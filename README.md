@@ -6,10 +6,11 @@ Panel comunitario para el fraccionamiento Quintas Mariana. La primera versión r
 
 - 38 lotes representados en un mapa vectorial adaptable
 - 32 casas y 6 terrenos baldíos diferenciados visualmente
-- Fichas vecinales interactivas con datos de demostración
+- Directorio vecinal progresivo, comenzando con la casa 607
 - Búsqueda por número de casa o familia
 - Filtros por estado del lote
-- Publicación local de avisos y centro de notificaciones
+- Publicación local de avisos y reportes vecinales con fotografías
+- Cinta informativa con el horario de recolección de basura
 - Diseño responsivo para escritorio, tableta y móvil
 
 ## Desarrollo local
@@ -39,3 +40,7 @@ Importa este repositorio en Vercel. El framework se detecta automáticamente com
 - TypeScript
 - Tailwind CSS 4
 - Lucide React
+
+## Alta de vecinos
+
+Los residentes se registran directamente en `src/lib/neighborhood-data.ts`, dentro de `residentDirectory`. Las casas sin alta aparecen como pendientes y no muestran información inventada.
