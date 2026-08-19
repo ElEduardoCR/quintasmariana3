@@ -502,7 +502,7 @@ export function CommunityDashboard() {
         <ActivityFeed onNotify={notify} />
 
         <div className="md:col-span-2 xl:col-span-1">
-          <NeighborhoodMap onNotify={notify} />
+          <NeighborhoodMap />
 
           <div className="mt-4 flex flex-col items-start justify-between gap-3 rounded-2xl border border-[#E1E5DE] bg-white/70 px-5 py-3.5 text-xs text-[#707A74] sm:flex-row sm:items-center">
             <div className="flex items-center gap-2">

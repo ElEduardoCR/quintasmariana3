@@ -3,7 +3,7 @@ export type LotStatus = "occupied" | "vacant";
 export type Household = {
   name: string;
   initials: string;
-  contact: string;
+  phoneNumbers: string[];
   accent: string;
   registered: boolean;
 };
@@ -29,13 +29,14 @@ export type Notice = {
   accent: "coral" | "green" | "blue" | "amber";
 };
 
-type RegisteredResident = Pick<Household, "name" | "initials" | "accent">;
+type RegisteredResident = Pick<Household, "name" | "initials" | "phoneNumbers" | "accent">;
 
 // Los vecinos se dan de alta aquí, usando el número de casa como llave.
 export const residentDirectory: Record<string, RegisteredResident> = {
   "607": {
     name: "Familia Castañeda Martínez",
     initials: "CM",
+    phoneNumbers: ["639 112 3516", "639 471 6134"],
     accent: "#376B5B",
   },
 };
@@ -48,7 +49,7 @@ function makeHousehold(lot: LotSeed): Household {
   return {
     name: resident?.name ?? "Vecino por registrar",
     initials: resident?.initials ?? lot.number,
-    contact: `Casa ${lot.number}`,
+    phoneNumbers: resident?.phoneNumbers ?? [],
     accent: resident?.accent ?? "#789087",
     registered: Boolean(resident),
   };

@@ -5,17 +5,13 @@ import {
   Construction,
   Home,
   MapPinned,
-  MessageCircle,
+  Phone,
   Search,
   TreePine,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Lot, LotStatus, lots } from "@/lib/neighborhood-data";
-
-type NeighborhoodMapProps = {
-  onNotify: (message: string) => void;
-};
 
 function LotShape({
   lot,
@@ -120,11 +116,9 @@ function LotShape({
 function NeighborPanel({
   lot,
   onClose,
-  onNotify,
 }: {
   lot: Lot;
   onClose: () => void;
-  onNotify: (message: string) => void;
 }) {
   const isVacant = lot.status === "vacant";
   const isRegistered = Boolean(lot.household?.registered);
@@ -169,13 +163,32 @@ function NeighborPanel({
               {lot.household?.initials}
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#263B34]">{lot.household?.contact}</p>
+              <p className="text-sm font-semibold text-[#263B34]">Casa {lot.number}</p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-[#7A837E]">
                 {isRegistered && <BadgeCheck size={13} className="text-[#3E725F]" />}
                 {isRegistered ? "Información vecinal registrada" : "Registro pendiente"}
               </p>
             </div>
           </div>
+          {isRegistered && lot.household && lot.household.phoneNumbers.length > 0 && (
+            <div className="mt-4 border-t border-[#E1E6DF] pt-3">
+              <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#8A948E]">
+                Teléfonos de contacto
+              </p>
+              <div className="mt-2 space-y-2">
+                {lot.household.phoneNumbers.map((phone) => (
+                  <a
+                    key={phone}
+                    href={`tel:${phone.replace(/\s/g, "")}`}
+                    className="flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-[#315E50] transition-colors hover:bg-[#EDF3EF]"
+                    aria-label={`Llamar al ${phone}`}
+                  >
+                    <Phone size={15} /> {phone}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           {!isRegistered && (
             <p className="mt-3 border-t border-[#E1E6DF] pt-3 text-xs leading-5 text-[#7A837E]">
               Esta casa todavía no tiene información vecinal registrada.
@@ -184,34 +197,14 @@ function NeighborPanel({
         </div>
       )}
 
-      <button
-        className="primary-button mt-6 w-full"
-        onClick={() =>
-          onNotify(
-            isVacant
-              ? `Solicitud enviada a administración sobre el lote ${lot.number}.`
-              : isRegistered
-                ? `Se abrió un mensaje para ${lot.household?.name}.`
-                : `Se solicitó actualizar la información de la casa ${lot.number}.`,
-          )
-        }
-      >
-        <MessageCircle size={17} />
-        {isVacant
-          ? "Consultar a administración"
-          : isRegistered
-            ? "Enviar mensaje"
-            : "Solicitar actualización"}
-      </button>
-
-      <p className="mt-4 text-center text-[11px] leading-4 text-[#919A94]">
+      <p className="mt-5 text-center text-[11px] leading-4 text-[#919A94]">
         La información vecinal se publica únicamente con autorización.
       </p>
     </aside>
   );
 }
 
-export function NeighborhoodMap({ onNotify }: NeighborhoodMapProps) {
+export function NeighborhoodMap() {
   const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | LotStatus>("all");
@@ -390,7 +383,7 @@ export function NeighborhoodMap({ onNotify }: NeighborhoodMapProps) {
         )}
 
         {selectedLot && (
-          <NeighborPanel lot={selectedLot} onClose={() => setSelectedLot(null)} onNotify={onNotify} />
+          <NeighborPanel lot={selectedLot} onClose={() => setSelectedLot(null)} />
         )}
       </div>
     </section>
