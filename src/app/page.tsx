@@ -1,5 +1,5 @@
-import { CommunityDashboard } from "@/components/community-dashboard";
+import { AuthGate } from "@/components/auth-gate";
 
 export default function Home() {
-  return <CommunityDashboard />;
+  return <AuthGate />;
 }

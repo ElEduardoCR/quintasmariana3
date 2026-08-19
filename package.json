@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup:resident-607": "node --env-file=.env.local scripts/provision-resident.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.112.3",
     "lucide-react": "^1.33.0",
     "next": "16.3.1",
     "react": "19.2.8",

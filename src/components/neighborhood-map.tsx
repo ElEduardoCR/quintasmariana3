@@ -4,6 +4,8 @@ import {
   BadgeCheck,
   Construction,
   Home,
+  KeyRound,
+  LoaderCircle,
   MapPinned,
   Phone,
   Search,
@@ -11,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { ResidentDirectoryEntry } from "@/lib/community-types";
 import { Lot, LotStatus, lots } from "@/lib/neighborhood-data";
 
 function LotShape({
@@ -116,9 +119,15 @@ function LotShape({
 function NeighborPanel({
   lot,
   onClose,
+  isAdmin,
+  resetting,
+  onResetAccess,
 }: {
   lot: Lot;
   onClose: () => void;
+  isAdmin: boolean;
+  resetting: boolean;
+  onResetAccess?: (resident: ResidentDirectoryEntry) => Promise<void>;
 }) {
   const isVacant = lot.status === "vacant";
   const isRegistered = Boolean(lot.household?.registered);
@@ -194,6 +203,24 @@ function NeighborPanel({
               Esta casa todavía no tiene información vecinal registrada.
             </p>
           )}
+          {isRegistered && isAdmin && lot.household?.userId && onResetAccess && (
+            <button
+              type="button"
+              className="secondary-button mt-4 flex w-full justify-center"
+              disabled={resetting}
+              onClick={() => onResetAccess({
+                userId: lot.household!.userId!,
+                homeNumber: lot.number,
+                householdName: lot.household!.name,
+                initials: lot.household!.initials,
+                accent: lot.household!.accent,
+                phoneNumbers: lot.household!.phoneNumbers,
+              })}
+            >
+              {resetting ? <LoaderCircle className="animate-spin" size={15} /> : <KeyRound size={15} />}
+              Restablecer acceso
+            </button>
+          )}
         </div>
       )}
 
@@ -204,16 +231,57 @@ function NeighborPanel({
   );
 }
 
-export function NeighborhoodMap() {
+export function NeighborhoodMap({
+  residents,
+  isAdmin = false,
+  onResetAccess,
+}: {
+  residents: ResidentDirectoryEntry[];
+  isAdmin?: boolean;
+  onResetAccess?: (resident: ResidentDirectoryEntry) => Promise<void>;
+}) {
   const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | LotStatus>("all");
+  const [resettingUser, setResettingUser] = useState<string | null>(null);
+
+  const mapLots = useMemo(() => {
+    const directory = new Map(residents.map((resident) => [resident.homeNumber, resident]));
+
+    return lots.map((lot) => {
+      if (lot.status === "vacant") return lot;
+      const resident = directory.get(lot.number);
+      if (!resident) return lot;
+
+      return {
+        ...lot,
+        household: {
+          userId: resident.userId,
+          name: resident.householdName,
+          initials: resident.initials,
+          phoneNumbers: resident.phoneNumbers,
+          accent: resident.accent,
+          registered: true,
+        },
+      };
+    });
+  }, [residents]);
+
+  async function resetAccess(resident: ResidentDirectoryEntry) {
+    if (!onResetAccess) return;
+    setResettingUser(resident.userId);
+    try {
+      await onResetAccess(resident);
+    } finally {
+      setResettingUser(null);
+    }
+  }
 
   const matchingIds = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("es");
 
     return new Set(
-      lots
+      mapLots
         .filter((lot) => statusFilter === "all" || lot.status === statusFilter)
         .filter((lot) => {
           if (!normalizedQuery) return true;
@@ -224,10 +292,10 @@ export function NeighborhoodMap() {
         })
         .map((lot) => lot.id),
     );
-  }, [query, statusFilter]);
+  }, [mapLots, query, statusFilter]);
 
-  const occupiedCount = lots.filter((lot) => lot.status === "occupied").length;
-  const vacantCount = lots.length - occupiedCount;
+  const occupiedCount = mapLots.filter((lot) => lot.status === "occupied").length;
+  const vacantCount = mapLots.length - occupiedCount;
 
   return (
     <section id="mapa" className="map-card scroll-mt-28">
@@ -237,7 +305,7 @@ export function NeighborhoodMap() {
           <div className="mt-1 flex items-center gap-2.5">
             <h2 className="font-serif text-[28px] leading-none text-[#20372F]">Mapa vecinal</h2>
             <span className="rounded-full bg-[#EDF1EC] px-2.5 py-1 text-[11px] font-bold text-[#66736C]">
-              {lots.length} lotes
+              {mapLots.length} lotes
             </span>
           </div>
         </div>
@@ -264,7 +332,7 @@ export function NeighborhoodMap() {
             className={`legend-chip ${statusFilter === "all" ? "is-active" : ""}`}
             onClick={() => setStatusFilter("all")}
           >
-            Todos <span>{lots.length}</span>
+            Todos <span>{mapLots.length}</span>
           </button>
           <button
             className={`legend-chip ${statusFilter === "occupied" ? "is-active" : ""}`}
@@ -358,7 +426,7 @@ export function NeighborhoodMap() {
             </g>
 
             <g aria-label="Lotes del fraccionamiento">
-              {lots.map((lot) => (
+              {mapLots.map((lot) => (
                 <LotShape
                   key={lot.id}
                   lot={lot}
@@ -383,7 +451,13 @@ export function NeighborhoodMap() {
         )}
 
         {selectedLot && (
-          <NeighborPanel lot={selectedLot} onClose={() => setSelectedLot(null)} />
+          <NeighborPanel
+            lot={selectedLot}
+            onClose={() => setSelectedLot(null)}
+            isAdmin={isAdmin}
+            resetting={Boolean(selectedLot.household?.userId && resettingUser === selectedLot.household.userId)}
+            onResetAccess={resetAccess}
+          />
         )}
       </div>
     </section>

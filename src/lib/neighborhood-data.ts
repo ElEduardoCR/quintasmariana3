@@ -1,6 +1,7 @@
 export type LotStatus = "occupied" | "vacant";
 
 export type Household = {
+  userId?: string;
   name: string;
   initials: string;
   phoneNumbers: string[];
@@ -21,7 +22,7 @@ export type Lot = {
 };
 
 export type Notice = {
-  id: number;
+  id: string;
   category: "Importante" | "Comunidad" | "Servicios" | "Eventos";
   title: string;
   body: string;
@@ -29,29 +30,15 @@ export type Notice = {
   accent: "coral" | "green" | "blue" | "amber";
 };
 
-type RegisteredResident = Pick<Household, "name" | "initials" | "phoneNumbers" | "accent">;
-
-// Los vecinos se dan de alta aquí, usando el número de casa como llave.
-export const residentDirectory: Record<string, RegisteredResident> = {
-  "607": {
-    name: "Familia Castañeda Martínez",
-    initials: "CM",
-    phoneNumbers: ["639 112 3516", "639 471 6134"],
-    accent: "#376B5B",
-  },
-};
-
 type LotSeed = Omit<Lot, "household">;
 
 function makeHousehold(lot: LotSeed): Household {
-  const resident = residentDirectory[lot.number];
-
   return {
-    name: resident?.name ?? "Vecino por registrar",
-    initials: resident?.initials ?? lot.number,
-    phoneNumbers: resident?.phoneNumbers ?? [],
-    accent: resident?.accent ?? "#789087",
-    registered: Boolean(resident),
+    name: "Vecino por registrar",
+    initials: lot.number,
+    phoneNumbers: [],
+    accent: "#789087",
+    registered: false,
   };
 }
 
@@ -140,7 +127,7 @@ export const lots = withHouseholds([
 
 export const initialNotices: Notice[] = [
   {
-    id: 1,
+    id: "seed-1",
     category: "Importante",
     title: "Mantenimiento de cisterna",
     body: "El servicio de agua se pausará el jueves de 9:00 a 12:00 h.",
@@ -148,7 +135,7 @@ export const initialNotices: Notice[] = [
     accent: "coral",
   },
   {
-    id: 2,
+    id: "seed-2",
     category: "Comunidad",
     title: "Asamblea vecinal",
     body: "Nos vemos este sábado en el parque para revisar las mejoras del acceso.",
@@ -156,7 +143,7 @@ export const initialNotices: Notice[] = [
     accent: "green",
   },
   {
-    id: 3,
+    id: "seed-3",
     category: "Servicios",
     title: "Recolección de ramas",
     body: "Coloca los residuos de jardín frente a tu domicilio antes de las 7:00 h.",
@@ -164,7 +151,7 @@ export const initialNotices: Notice[] = [
     accent: "blue",
   },
   {
-    id: 4,
+    id: "seed-4",
     category: "Eventos",
     title: "Tarde de juegos en el parque",
     body: "Habrá lotería, aguas frescas y actividades para niñas y niños.",
