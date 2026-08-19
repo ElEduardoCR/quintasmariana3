@@ -1,11 +1,11 @@
 # Quintas Mariana
 
-Panel comunitario para un fraccionamiento de aproximadamente 40 casas. La primera versión reúne avisos generales, actividad reciente y un mapa vecinal interactivo basado en la distribución proporcionada.
+Panel comunitario para el fraccionamiento Quintas Mariana. La primera versión reúne avisos generales, actividad reciente y un mapa vecinal interactivo basado en la distribución proporcionada.
 
 ## Funcionalidades
 
-- 40 lotes representados en un mapa vectorial adaptable
-- 35 casas y 5 terrenos baldíos diferenciados visualmente
+- 38 lotes representados en un mapa vectorial adaptable
+- 32 casas y 6 terrenos baldíos diferenciados visualmente
 - Fichas vecinales interactivas con datos de demostración
 - Búsqueda por número de casa o familia
 - Filtros por estado del lote

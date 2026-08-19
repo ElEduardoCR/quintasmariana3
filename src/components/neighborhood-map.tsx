@@ -310,7 +310,7 @@ export function NeighborhoodMap({ onNotify }: NeighborhoodMapProps) {
           >
             <title id="map-title">Mapa interactivo de Quintas Mariana</title>
             <desc id="map-description">
-              Fraccionamiento rectangular con cuarenta lotes, parque central y un único acceso al sur.
+              Fraccionamiento rectangular con treinta y ocho lotes, parque central y un único acceso al sur.
             </desc>
             <defs>
               <pattern id="vacantPattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">

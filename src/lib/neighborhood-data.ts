@@ -70,9 +70,10 @@ const familyNames = [
 ];
 
 const accents = ["#376B5B", "#CE715B", "#55737E", "#A37746", "#6D6B8C"];
-const vacantIds = new Set([27, 30, 33, 36, 38]);
 
-function makeHousehold(lotId: number, occupiedIndex: number): Household {
+type LotSeed = Omit<Lot, "household">;
+
+function makeHousehold(lot: LotSeed, occupiedIndex: number): Household {
   const name = familyNames[occupiedIndex];
   const initials = name.replace("Familia ", "").slice(0, 2).toUpperCase();
   const petOptions = ["Luna · perrita", "Milo · gato", undefined, "Nala · perrita", undefined];
@@ -80,64 +81,91 @@ function makeHousehold(lotId: number, occupiedIndex: number): Household {
   return {
     name,
     initials,
-    members: 2 + ((lotId + occupiedIndex) % 4),
+    members: 2 + ((lot.id + occupiedIndex) % 4),
     since: String(2018 + (occupiedIndex % 8)),
     pet: petOptions[occupiedIndex % petOptions.length],
-    contact: `Contacto vecinal · Casa ${String(lotId).padStart(2, "0")}`,
+    contact: `Contacto vecinal · Casa ${lot.number}`,
     accent: accents[occupiedIndex % accents.length],
   };
 }
 
-function withHouseholds(lots: Omit<Lot, "status" | "household">[]): Lot[] {
+function withHouseholds(lots: LotSeed[]): Lot[] {
   let occupiedIndex = 0;
 
   return lots.map((lot) => {
-    if (vacantIds.has(lot.id)) {
-      return { ...lot, status: "vacant" as const };
-    }
+    if (lot.status === "vacant") return lot;
 
-    const household = makeHousehold(lot.id, occupiedIndex);
+    const household = makeHousehold(lot, occupiedIndex);
     occupiedIndex += 1;
-    return { ...lot, status: "occupied" as const, household };
+    return { ...lot, household };
   });
 }
 
-const northLots = Array.from({ length: 17 }, (_, index) => ({
+// Tramo superior: 16 casas, de la 627 a la 612 (izquierda a derecha).
+const northLots: LotSeed[] = Array.from({ length: 16 }, (_, index) => ({
   id: index + 1,
-  number: String(index + 1).padStart(2, "0"),
-  x: 34 + index * 52.4,
+  number: String(627 - index),
+  x: 34 + index * 55.2,
   y: 24,
-  width: 44,
+  width: 48,
   height: 78,
   side: "north" as const,
+  status: "occupied" as const,
 }));
 
-const eastLots = Array.from({ length: 7 }, (_, index) => ({
-  id: index + 18,
-  number: String(index + 18).padStart(2, "0"),
+// Lateral derecho: cinco casas; la 611 ocupa la esquina superior.
+const eastLots: LotSeed[] = Array.from({ length: 5 }, (_, index) => ({
+  id: index + 17,
+  number: String(611 - index),
   x: 918,
-  y: 116 + index * 57,
+  y: 116 + index * 76,
   width: 52,
-  height: 45,
+  height: 62,
   side: "east" as const,
+  status: "occupied" as const,
 }));
 
-const southRightLots = Array.from({ length: 8 }, (_, index) => ({
-  id: index + 25,
-  number: String(index + 25).padStart(2, "0"),
-  x: 916 - index * 51.5,
+// Tramo inferior derecho, desde el acceso hacia la esquina 606.
+const southRightLayout: Array<Pick<LotSeed, "number" | "status">> = [
+  { number: "S/N", status: "vacant" },
+  { number: "601", status: "occupied" },
+  { number: "602", status: "vacant" },
+  { number: "603", status: "vacant" },
+  { number: "604", status: "occupied" },
+  { number: "605", status: "occupied" },
+  { number: "606", status: "occupied" },
+];
+
+const southRightLots: LotSeed[] = southRightLayout.map((lot, index) => ({
+  ...lot,
+  id: index + 22,
+  x: 562 + index * 58,
   y: 516,
-  width: 43,
+  width: 48,
   height: 78,
   side: "south" as const,
 }));
 
-const southLeftLots = Array.from({ length: 8 }, (_, index) => ({
-  id: index + 33,
-  number: String(index + 33).padStart(2, "0"),
-  x: 397 - index * 51.5,
+// Tramo inferior izquierdo: diez lotes, incluido el baldío sin número junto al acceso.
+const southLeftLayout: Array<Pick<LotSeed, "number" | "status">> = [
+  { number: "628", status: "occupied" },
+  { number: "629", status: "occupied" },
+  { number: "630", status: "occupied" },
+  { number: "631", status: "occupied" },
+  { number: "632", status: "occupied" },
+  { number: "633", status: "vacant" },
+  { number: "634", status: "vacant" },
+  { number: "635", status: "occupied" },
+  { number: "636", status: "occupied" },
+  { number: "S/N", status: "vacant" },
+];
+
+const southLeftLots: LotSeed[] = southLeftLayout.map((lot, index) => ({
+  ...lot,
+  id: index + 29,
+  x: 34 + index * 42,
   y: 516,
-  width: 43,
+  width: 36,
   height: 78,
   side: "south" as const,
 }));
@@ -188,14 +216,14 @@ export const activityItems = [
   {
     id: 1,
     title: "Acceso registrado",
-    detail: "Proveedor autorizado · Casa 12",
+    detail: "Proveedor autorizado · Casa 618",
     time: "Hace 8 min",
     type: "access" as const,
   },
   {
     id: 2,
     title: "Cuota recibida",
-    detail: "Casa 08 · Agosto",
+    detail: "Casa 624 · Agosto",
     time: "Hace 42 min",
     type: "payment" as const,
   },
@@ -209,7 +237,7 @@ export const activityItems = [
   {
     id: 4,
     title: "Visita finalizada",
-    detail: "Casa 21 · Salida confirmada",
+    detail: "Casa 609 · Salida confirmada",
     time: "Ayer · 7:02 p. m.",
     type: "access" as const,
   },
